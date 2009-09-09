@@ -1,0 +1,45 @@
+#!/bin/bash
+
+if [ -z $1 ] ; then
+  echo "Usage: $0 [start|stop|restart] "
+  exit 1
+fi
+
+# Source the common setup functions for startup scripts
+test -r /etc/rc.common || exit 1
+. /etc/rc.common
+
+# Set up some defaults
+DBPATH="/usr/local/mongodb/db"
+MONGOD_PORT=27017
+
+StartService(){
+	/usr/local/mongodb/bin/mongod run --dbpath=$DBPATH --port $MONGOD_PORT > /dev/null 2>&1 &
+}
+
+StopService() {
+	pidfile=$DBPATH/mongod.lock
+	
+	# If the lockfile exists, it contains the PID
+	if [ -e $pidfile ]; then
+		pid=`cat $pidfile`
+	fi
+	
+	# If we don't have a PID, check for it
+	if [ "$pid" == "" ]; then
+		pid=`/usr/sbin/lsof -i tcp:$MONGOD_PORT | tail -1 | awk '{print $2}'`
+	fi
+	
+	# If we've found a PID, let's kill it
+	if [ "$pid" != "" ]; then
+		kill -2 $pid
+	fi
+}
+
+RestartService() {
+	StopService
+	sleep 3
+	StartService
+}
+
+RunService $1
