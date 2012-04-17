@@ -10,11 +10,12 @@ test -r /etc/rc.common || exit 1
 . /etc/rc.common
 
 # Set up some defaults
-DBPATH="/usr/local/mongodb/db"
+DBPATH='/usr/local/mongodb/db'
+LOGPATH='/usr/local/mongodb/log/mongod.log'
 MONGOD_PORT=27017
 
 StartService(){
-	/usr/local/mongodb/bin/mongod run --dbpath=$DBPATH --port $MONGOD_PORT > /dev/null 2>&1 &
+	/usr/local/mongodb/bin/mongod run --dbpath=$DBPATH --logpath=$LOGPATH --port $MONGOD_PORT > /dev/null 2>&1 &
 }
 
 StopService() {
@@ -29,10 +30,10 @@ StopService() {
 	if [ "$pid" == "" ]; then
 		pid=`/usr/sbin/lsof -i tcp:$MONGOD_PORT | tail -1 | awk '{print $2}'`
 	fi
-	
+
 	# If we've found a PID, let's kill it
 	if [ "$pid" != "" ]; then
-		kill -2 $pid
+		kill -15 $pid
 	fi
 }
 
